@@ -1,13 +1,25 @@
 <!-- update -->
 
-
-
-
 <!DOCTYPE html>
 <html lang="nl">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#EDE8DE">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Fietsdossier</title>
+
+<!-- PWA manifest -->
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+
+<!-- jsPDF voor PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap');
 
@@ -227,6 +239,16 @@ button{font-family:'Inter',sans-serif;cursor:pointer;}
   font-size:14px;
 }
 .btn-danger:hover{background:var(--accent-tint);}
+.btn-success{
+  background:var(--green);
+  color:#fff;
+  border:none;
+  padding:9px 16px;
+  border-radius:8px;
+  font-size:14px;
+  font-weight:600;
+}
+.btn-success:hover{filter:brightness(0.92);}
 
 .result-count{
   font-size:12px;
@@ -381,7 +403,7 @@ button{font-family:'Inter',sans-serif;cursor:pointer;}
 .field textarea{resize:vertical;min-height:60px;}
 .field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 .field-error{font-size:12px;color:#C2534A;margin-top:4px;display:none;}
-.panel-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;}
+.panel-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;flex-wrap:wrap;}
 
 .detail-photo-wrap{
   width:100%;height:220px;
@@ -434,6 +456,24 @@ button{font-family:'Inter',sans-serif;cursor:pointer;}
 }
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
+/* Installatie-banner */
+.install-banner {
+  display: none;
+  background:var(--accent-tint);
+  border:1px solid var(--accent);
+  border-radius:12px;
+  padding:14px 18px;
+  margin-bottom:18px;
+  align-items:center;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  gap:12px;
+}
+.install-banner.show{display:flex;}
+.install-banner p{margin:0;font-weight:500;display:flex;align-items:center;gap:8px;}
+.install-btn{background:var(--accent);color:#fff;border:none;padding:10px 22px;border-radius:8px;font-weight:600;font-size:14px;cursor:pointer;}
+.install-btn:hover{background:var(--accent-dark);}
+
 @media (max-width:640px){
   .stats{grid-template-columns:repeat(2,1fr);}
   .field-row{grid-template-columns:1fr;}
@@ -442,6 +482,11 @@ button{font-family:'Inter',sans-serif;cursor:pointer;}
 </head>
 <body>
 <div class="wrap">
+
+  <div class="install-banner" id="installBanner">
+    <p>📱 <span>Installeer deze app op je telefoon!</span></p>
+    <button class="install-btn" id="installBtn">Installeren</button>
+  </div>
 
   <div class="header">
     <div class="brand">
@@ -480,6 +525,7 @@ button{font-family:'Inter',sans-serif;cursor:pointer;}
       <option value="naam">Naam A-Z</option>
     </select>
     <button class="btn-primary" onclick="openForm()">+ Nieuwe fiets</button>
+    <button class="btn-ghost" onclick="resetDemoData()" style="font-size:13px;">🔄 Herstel demo</button>
   </div>
 
   <div class="result-count" id="result-count"></div>
@@ -490,6 +536,7 @@ button{font-family:'Inter',sans-serif;cursor:pointer;}
   </div>
 </div>
 
+<!-- Formulier -->
 <div class="overlay" id="form-overlay">
   <div class="panel">
     <h2 id="form-title">Nieuwe fiets</h2>
@@ -517,55 +564,64 @@ button{font-family:'Inter',sans-serif;cursor:pointer;}
   </div>
 </div>
 
+<!-- Detail -->
 <div class="overlay" id="detail-overlay">
   <div class="panel" style="max-width:520px;">
     <div id="detail-content"></div>
   </div>
 </div>
 
+<!-- Factuur -->
+<div class="overlay" id="invoice-overlay">
+  <div class="panel" style="max-width:560px;">
+    <h2>🧾 Factuur genereren</h2>
+    <div id="invoice-preview" style="margin-bottom:16px;background:var(--surface-2);padding:16px;border-radius:8px;border:1px solid var(--line);">
+    </div>
+    <div class="field"><label>Klantnaam</label><input id="inv-klantnaam" placeholder="Naam van de koper"></div>
+    <div class="field"><label>Adres</label><input id="inv-adres" placeholder="Straat + huisnummer"></div>
+    <div class="field"><label>Plaats</label><input id="inv-plaats" placeholder="Plaats"></div>
+    <div class="field"><label>Factuurnummer (optioneel)</label><input id="inv-nummer" placeholder="Bijv. 2026-001"></div>
+    <div class="panel-actions">
+      <button class="btn-ghost" onclick="closeInvoice()">Annuleren</button>
+      <button class="btn-success" onclick="downloadInvoice()">📥 Download PDF</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
+// ──────────────────────────────────────────────────────────────
+// FIETSENLIJST MET localStorage (geen window.storage meer)
+// ──────────────────────────────────────────────────────────────
+
 let bikes = [];
 let filterStatus = 'alle';
 let sortMode = 'nieuw';
 let searchTerm = '';
+let currentInvoiceBikeId = null;
 
 const STORAGE_KEY = 'fietsen-lijst';
 
 document.getElementById('datum').textContent = new Date().toLocaleDateString('nl-NL',{day:'numeric',month:'long',year:'numeric'});
 
-async function loadBikes(){
-  try{
-    const res = await window.storage.get(STORAGE_KEY, false);
-    bikes = res ? JSON.parse(res.value) : [];
-  }catch(e){
+// ─── Opslag in localStorage ───
+function loadBikes() {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    bikes = stored ? JSON.parse(stored) : [];
+  } catch(e) {
     bikes = [];
   }
 
   const IMPORT_FLAG_KEY = 'import-rijwielservice-v1';
-  let alreadyImported = false;
-  try{
-    const flag = await window.storage.get(IMPORT_FLAG_KEY, false);
-    alreadyImported = !!flag;
-  }catch(e){
-    alreadyImported = false;
-  }
-  if(!alreadyImported){
+  if (!localStorage.getItem(IMPORT_FLAG_KEY)) {
     bikes = bikes.concat(getImportBikes());
-    await persist();
-    try{ await window.storage.set(IMPORT_FLAG_KEY, 'true', false); }catch(e){}
+    localStorage.setItem(IMPORT_FLAG_KEY, 'true');
   }
 
   const LINKS_FLAG_KEY = 'links-rijwielservice-v1';
-  let linksApplied = false;
-  try{
-    const flag = await window.storage.get(LINKS_FLAG_KEY, false);
-    linksApplied = !!flag;
-  }catch(e){
-    linksApplied = false;
-  }
-  if(!linksApplied){
+  if (!localStorage.getItem(LINKS_FLAG_KEY)) {
     const linkMap = {
       'd3b1f868':'https://www.marktplaats.nl/v/fietsen-en-brommers/fietsen-heren-herenfietsen/m2412227076-batavus-herenfiets',
       '115c8399':'https://www.marktplaats.nl/v/fietsen-en-brommers/fietsen-heren-herenfietsen/m2412219782-batavus-herenfiets',
@@ -598,19 +654,11 @@ async function loadBikes(){
         }
       }
     });
-    await persist();
-    try{ await window.storage.set(LINKS_FLAG_KEY, 'true', false); }catch(e){}
+    localStorage.setItem(LINKS_FLAG_KEY, 'true');
   }
 
   const CORRECTION_FLAG_KEY = 'correction-v1';
-  let correctionApplied = false;
-  try{
-    const flag = await window.storage.get(CORRECTION_FLAG_KEY, false);
-    correctionApplied = !!flag;
-  }catch(e){
-    correctionApplied = false;
-  }
-  if(!correctionApplied){
+  if (!localStorage.getItem(CORRECTION_FLAG_KEY)) {
     bikes.forEach(b => {
       if(b.foto && b.foto.indexOf('d3b1f868') !== -1){
         b.link = 'https://www.marktplaats.nl/v/fietsen-en-brommers/fietsen-heren-herenfietsen/m2412227076-batavus-herenfiets';
@@ -620,19 +668,11 @@ async function loadBikes(){
         b.link = 'https://www.marktplaats.nl/v/fietsen-en-brommers/fietsen-heren-herenfietsen/m2412219782-batavus-herenfiets';
       }
     });
-    await persist();
-    try{ await window.storage.set(CORRECTION_FLAG_KEY, 'true', false); }catch(e){}
+    localStorage.setItem(CORRECTION_FLAG_KEY, 'true');
   }
 
   const VIEWS_FLAG_KEY = 'views-refresh-v1';
-  let viewsApplied = false;
-  try{
-    const flag = await window.storage.get(VIEWS_FLAG_KEY, false);
-    viewsApplied = !!flag;
-  }catch(e){
-    viewsApplied = false;
-  }
-  if(!viewsApplied){
+  if (!localStorage.getItem(VIEWS_FLAG_KEY)) {
     const viewsMap = { 'f2f8b7b9': 103 };
     bikes.forEach(b => {
       if(!b.foto) return;
@@ -643,13 +683,36 @@ async function loadBikes(){
         }
       }
     });
-    await persist();
-    try{ await window.storage.set(VIEWS_FLAG_KEY, 'true', false); }catch(e){}
+    localStorage.setItem(VIEWS_FLAG_KEY, 'true');
   }
 
+  persist();
   render();
 }
 
+function persist() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(bikes));
+  } catch(e) {
+    console.error('Opslaan mislukt', e);
+    showToast('Opslaan is mislukt. Probeer opnieuw.');
+  }
+}
+
+// ─── Reset demo-data ───
+function resetDemoData() {
+  if (!confirm('Wil je alle fietsen vervangen door de demo-fietsen? (Je eigen toevoegingen gaan verloren!)')) return;
+  localStorage.removeItem('import-rijwielservice-v1');
+  localStorage.removeItem('links-rijwielservice-v1');
+  localStorage.removeItem('correction-v1');
+  localStorage.removeItem('views-refresh-v1');
+  localStorage.removeItem(STORAGE_KEY);
+  bikes = [];
+  loadBikes();
+  showToast('Demo-fietsen hersteld!');
+}
+
+// ─── Import-fietsen ───
 function importBike(naam, merk, prijs, beschrijving, imgId, link){
   return {
     id: 'fiets_' + Math.random().toString(36).slice(2) + Date.now(),
@@ -691,18 +754,14 @@ function getImportBikes(){
   ];
 }
 
-async function persist(){
-  try{
-    await window.storage.set(STORAGE_KEY, JSON.stringify(bikes), false);
-  }catch(e){
-    console.error('Opslaan mislukt', e);
-    showToast('Opslaan is mislukt. Probeer opnieuw.');
-  }
-}
+// ─── De rest van de functies (render, stats, etc.) ───
 
 function fmtPrijs(p){
   const n = Number(p)||0;
   return '\u20ac ' + n.toLocaleString('nl-NL');
+}
+function fmtPrijsZonderEuro(p){
+  return (Number(p)||0).toLocaleString('nl-NL');
 }
 
 function showToast(msg){
@@ -799,6 +858,7 @@ function escapeAttr(str){
   return (str||'').replace(/"/g,'&quot;');
 }
 
+// ─── Event listeners ───
 document.getElementById('search-input').addEventListener('input', (e)=>{
   searchTerm = e.target.value;
   render();
@@ -816,6 +876,7 @@ document.getElementById('status-filter').addEventListener('click', (e)=>{
   render();
 });
 
+// ─── Formulier functies ───
 function openForm(id){
   document.getElementById('f-id').value = '';
   document.getElementById('f-naam').value = '';
@@ -850,7 +911,7 @@ function closeForm(){
   document.getElementById('form-overlay').classList.remove('open');
 }
 
-async function saveForm(){
+function saveForm(){
   const id = document.getElementById('f-id').value;
   const naam = document.getElementById('f-naam').value.trim();
   if(!naam){
@@ -881,11 +942,12 @@ async function saveForm(){
     });
     showToast('Fiets toegevoegd');
   }
-  await persist();
+  persist();
   render();
   closeForm();
 }
 
+// ─── Detail ───
 function openDetail(id){
   const b = bikes.find(x=>x.id===id);
   if(!b) return;
@@ -918,6 +980,7 @@ function openDetail(id){
     </div>
     ${b.link ? `<a class="link-btn" href="${escapeAttr(b.link)}" target="_blank" rel="noopener"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M10 14L21 3M21 3h-6M21 3v6"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>Open op Marktplaats</a>` : `<div class="small-note">Nog geen Marktplaats-link toegevoegd.</div>`}
     <div class="panel-actions">
+      <button class="btn-success" onclick="openInvoice('${b.id}')">🧾 Factuur</button>
       <button class="btn-danger" onclick="deleteBike('${b.id}')">Verwijderen</button>
       <button class="btn-ghost" onclick="closeDetail(); openForm('${b.id}')">Bewerken</button>
       <button class="btn-primary" onclick="closeDetail()">Sluiten</button>
@@ -930,26 +993,189 @@ function closeDetail(){
   document.getElementById('detail-overlay').classList.remove('open');
 }
 
-async function setViews(id){
+function setViews(id){
   const b = bikes.find(x=>x.id===id);
   const val = Number(document.getElementById('views-input').value)||0;
   b.weergaven = val;
-  await persist();
+  persist();
   render();
   updateStats();
   showToast('Weergaven bijgewerkt');
 }
 
-async function deleteBike(id){
+function deleteBike(id){
   if(!confirm('Deze fiets en het dossier verwijderen?')) return;
   bikes = bikes.filter(x=>x.id!==id);
-  await persist();
+  persist();
   render();
   closeDetail();
   showToast('Fiets verwijderd');
 }
 
+// ──────────────────────────────────────────────────────────────
+// 🧾 FACTUURFUNCTIES
+// ──────────────────────────────────────────────────────────────
+
+function openInvoice(bikeId) {
+  currentInvoiceBikeId = bikeId;
+  const b = bikes.find(x => x.id === bikeId);
+  if (!b) return;
+
+  const preview = document.getElementById('invoice-preview');
+  preview.innerHTML = `
+    <div style="font-family:monospace;font-size:13px;">
+      <strong>Fietsdossier</strong><br>
+      Timmermanseweg 46, Ysselsteyn<br><br>
+      <strong>Factuur</strong> #${generateInvoiceNumber()}<br>
+      Datum: ${new Date().toLocaleDateString('nl-NL')}<br><br>
+      <strong>Fiets:</strong> ${escapeHtml(b.naam)}<br>
+      <strong>Merk:</strong> ${escapeHtml(b.merk||'-')}<br>
+      <strong>Prijs:</strong> ${fmtPrijs(b.prijs)}<br>
+      <hr style="border:1px solid var(--line)">
+      <span style="font-size:16px;font-weight:600;">Totaal: ${fmtPrijs(b.prijs)}</span>
+    </div>
+  `;
+
+  document.getElementById('inv-klantnaam').value = '';
+  document.getElementById('inv-adres').value = '';
+  document.getElementById('inv-plaats').value = '';
+  document.getElementById('inv-nummer').value = generateInvoiceNumber();
+
+  document.getElementById('invoice-overlay').classList.add('open');
+}
+
+function closeInvoice() {
+  document.getElementById('invoice-overlay').classList.remove('open');
+  currentInvoiceBikeId = null;
+}
+
+function generateInvoiceNumber() {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth()+1).padStart(2,'0');
+  const day = String(d.getDate()).padStart(2,'0');
+  const count = localStorage.getItem('invoice_count_' + year+month+day) || 0;
+  const newCount = parseInt(count)+1;
+  localStorage.setItem('invoice_count_' + year+month+day, String(newCount));
+  return `${year}${month}${day}-${String(newCount).padStart(3,'0')}`;
+}
+
+function downloadInvoice() {
+  if (!currentInvoiceBikeId) return;
+  const b = bikes.find(x => x.id === currentInvoiceBikeId);
+  if (!b) return;
+
+  const klant = document.getElementById('inv-klantnaam').value.trim() || 'Onbekend';
+  const adres = document.getElementById('inv-adres').value.trim() || '';
+  const plaats = document.getElementById('inv-plaats').value.trim() || '';
+  const factuurnr = document.getElementById('inv-nummer').value.trim() || generateInvoiceNumber();
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const pageWidth = 210;
+  const pageHeight = 297;
+  const marge = 20;
+  let y = marge;
+
+  doc.setFontSize(22);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Fietsdossier', pageWidth/2, y, { align: 'center' });
+  y += 8;
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'normal');
+  doc.text('Timmermanseweg 46, Ysselsteyn', pageWidth/2, y, { align: 'center' });
+  y += 6;
+  doc.text('Tel: 06-12345678', pageWidth/2, y, { align: 'center' });
+  y += 12;
+
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.text('FACTUUR', marge, y);
+  y += 7;
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.text(`Factuurnummer: ${factuurnr}`, marge, y);
+  y += 5;
+  doc.text(`Datum: ${new Date().toLocaleDateString('nl-NL')}`, marge, y);
+  y += 5;
+
+  doc.text('Klant:', marge, y);
+  y += 5;
+  doc.setFont('helvetica', 'bold');
+  doc.text(klant, marge, y);
+  y += 5;
+  doc.setFont('helvetica', 'normal');
+  doc.text(adres, marge, y);
+  y += 5;
+  doc.text(plaats, marge, y);
+  y += 10;
+
+  const tableData = [
+    ['Omschrijving', 'Merk', 'Prijs'],
+    [b.naam, b.merk || '-', fmtPrijs(b.prijs)]
+  ];
+  doc.autoTable({
+    startY: y,
+    head: [tableData[0]],
+    body: [tableData[1]],
+    theme: 'grid',
+    styles: { fontSize: 10, cellPadding: 3 },
+    headStyles: { fillColor: [45, 45, 45], textColor: 255, fontStyle: 'bold' },
+    columnStyles: {
+      0: { cellWidth: 70 },
+      1: { cellWidth: 50 },
+      2: { cellWidth: 40 }
+    }
+  });
+  y = doc.lastAutoTable.finalY + 8;
+
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'bold');
+  doc.text(`Totaal: ${fmtPrijs(b.prijs)}`, pageWidth - marge - 40, y, { align: 'right' });
+  y += 10;
+
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'italic');
+  doc.text('Bedankt voor uw aankoop!', pageWidth/2, pageHeight - 20, { align: 'center' });
+
+  doc.save(`Factuur_${factuurnr}.pdf`);
+  showToast('Factuur gedownload!');
+  closeInvoice();
+}
+
+// ─── PWA installatie ───
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('installBanner').classList.add('show');
+});
+document.getElementById('installBtn').addEventListener('click', () => {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(() => {
+      document.getElementById('installBanner').classList.remove('show');
+      deferredPrompt = null;
+    });
+  }
+});
+window.addEventListener('appinstalled', () => {
+  document.getElementById('installBanner').classList.remove('show');
+});
+
+// ─── Service Worker ───
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('service-worker.js')
+      .then(() => console.log('Service Worker geregistreerd'))
+      .catch(() => console.log('Service Worker registratie mislukt'));
+  });
+}
+
+// ─── Start app ───
 loadBikes();
 </script>
 </body>
 </html>
+
+
