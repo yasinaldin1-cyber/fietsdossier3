@@ -10,13 +10,11 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Fietsdossier</title>
 
-<!-- PWA manifest -->
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
 
-<!-- jsPDF voor PDF -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 
@@ -37,6 +35,8 @@
   --steel-tint:#DCE9EC;
   --green:#3E7A4E;
   --green-tint:#E1EFE3;
+  --amber:#B8863A;
+  --amber-tint:#F3E6D0;
   --line:#DCD3BF;
   --line-strong:#C7BB9F;
   --shadow:0 10px 24px rgba(36,31,27,0.08);
@@ -57,6 +57,8 @@
     --steel-tint:#20343C;
     --green:#7FBE8F;
     --green-tint:#1E2E22;
+    --amber:#E0B067;
+    --amber-tint:#3A2F1C;
     --line:#3A3530;
     --line-strong:#4A443C;
     --shadow:0 10px 24px rgba(0,0,0,0.35);
@@ -74,7 +76,6 @@ body{
 }
 .wrap{max-width:1040px;margin:0 auto;}
 
-/* header */
 .header{
   display:flex;
   align-items:flex-end;
@@ -111,7 +112,6 @@ body{
   margin-top:4px;
 }
 
-/* stats */
 .stats{
   display:grid;
   grid-template-columns:repeat(4,1fr);
@@ -152,7 +152,6 @@ body{
   margin-top:2px;
 }
 
-/* toolbar */
 .toolbar{
   display:flex;
   gap:10px;
@@ -184,7 +183,7 @@ body{
 }
 .search-box input:focus{outline:2px solid var(--accent);outline-offset:-1px;}
 
-.chip-group{display:flex;gap:6px;}
+.chip-group{display:flex;gap:6px;flex-wrap:wrap;}
 .chip{
   padding:8px 14px;
   border-radius:20px;
@@ -256,7 +255,6 @@ button{font-family:'Inter',sans-serif;cursor:pointer;}
   margin-bottom:14px;
 }
 
-/* grid */
 .grid{
   display:grid;
   grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
@@ -298,6 +296,7 @@ button{font-family:'Inter',sans-serif;cursor:pointer;}
   background:rgba(255,253,249,0.92);
 }
 .card .status-pill.te-koop{color:var(--accent-dark);}
+.card .status-pill.gereserveerd{color:var(--amber);}
 .card .status-pill.verkocht{color:var(--steel);}
 .card .views-pill{
   position:absolute;
@@ -341,6 +340,7 @@ button{font-family:'Inter',sans-serif;cursor:pointer;}
   color:var(--ink-faint);
   display:flex;align-items:center;gap:4px;
 }
+.card.is-gereserveerd{ box-shadow: inset 0 0 0 2px var(--amber); }
 
 .empty{
   text-align:center;
@@ -351,7 +351,6 @@ button{font-family:'Inter',sans-serif;cursor:pointer;}
 }
 .empty h3{font-family:'Oswald',sans-serif;color:var(--ink);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
 
-/* overlays */
 .overlay{
   display:none;
   position:fixed;
@@ -419,6 +418,7 @@ button{font-family:'Inter',sans-serif;cursor:pointer;}
 .detail-prijs{font-family:'IBM Plex Mono',monospace;font-size:24px;font-weight:600;margin-top:8px;}
 .badge{font-size:10px;text-transform:uppercase;letter-spacing:.5px;font-weight:600;padding:4px 10px;border-radius:20px;flex-shrink:0;}
 .badge.te-koop{background:var(--accent-tint);color:var(--accent-dark);}
+.badge.gereserveerd{background:var(--amber-tint);color:var(--amber);}
 .badge.verkocht{background:var(--steel-tint);color:var(--steel);}
 .detail-desc{font-size:14px;line-height:1.65;color:var(--ink);margin:16px 0;white-space:pre-wrap;}
 .detail-meta{
@@ -439,6 +439,18 @@ button{font-family:'Inter',sans-serif;cursor:pointer;}
 }
 .link-btn:hover{filter:brightness(0.92);}
 .small-note{font-size:12px;color:var(--ink-faint);margin-top:8px;}
+.reserve-note{
+  background:var(--amber-tint);
+  border:1px solid var(--amber);
+  color:var(--amber);
+  border-radius:8px;
+  padding:10px 14px;
+  font-size:13px;
+  margin-bottom:14px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
 
 .toast{
   position:fixed;
@@ -456,7 +468,6 @@ button{font-family:'Inter',sans-serif;cursor:pointer;}
 }
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
-/* Installatie-banner */
 .install-banner {
   display: none;
   background:var(--accent-tint);
@@ -515,6 +526,7 @@ button{font-family:'Inter',sans-serif;cursor:pointer;}
     <div class="chip-group" id="status-filter">
       <div class="chip active" data-status="alle">Alle</div>
       <div class="chip" data-status="te koop">Te koop</div>
+      <div class="chip" data-status="gereserveerd">Gereserveerd</div>
       <div class="chip" data-status="verkocht">Verkocht</div>
     </div>
     <select id="sort-select">
@@ -536,7 +548,6 @@ button{font-family:'Inter',sans-serif;cursor:pointer;}
   </div>
 </div>
 
-<!-- Formulier -->
 <div class="overlay" id="form-overlay">
   <div class="panel">
     <h2 id="form-title">Nieuwe fiets</h2>
@@ -550,9 +561,14 @@ button{font-family:'Inter',sans-serif;cursor:pointer;}
       <div class="field"><label>Status</label>
         <select id="f-status">
           <option value="te koop">Te koop</option>
+          <option value="gereserveerd">Gereserveerd</option>
           <option value="verkocht">Verkocht</option>
         </select>
       </div>
+    </div>
+    <div class="field-row" id="reserve-fields" style="display:none;">
+      <div class="field"><label>Gereserveerd door</label><input id="f-reserveerdoor" placeholder="Naam van de klant"></div>
+      <div class="field"><label>Aanbetaling (&euro;)</label><input id="f-aanbetaling" type="number" placeholder="25"></div>
     </div>
     <div class="field"><label>Beschrijving</label><textarea id="f-beschrijving" placeholder="Staat, extra's, ophalen/verzenden..."></textarea></div>
     <div class="field"><label>Foto (URL)</label><input id="f-foto" placeholder="https://..."></div>
@@ -564,26 +580,26 @@ button{font-family:'Inter',sans-serif;cursor:pointer;}
   </div>
 </div>
 
-<!-- Detail -->
 <div class="overlay" id="detail-overlay">
   <div class="panel" style="max-width:520px;">
     <div id="detail-content"></div>
   </div>
 </div>
 
-<!-- Factuur -->
 <div class="overlay" id="invoice-overlay">
   <div class="panel" style="max-width:560px;">
     <h2>🧾 Factuur genereren</h2>
     <div id="invoice-preview" style="margin-bottom:16px;background:var(--surface-2);padding:16px;border-radius:8px;border:1px solid var(--line);">
     </div>
     <div class="field"><label>Klantnaam</label><input id="inv-klantnaam" placeholder="Naam van de koper"></div>
+    <div class="field"><label>E-mailadres klant</label><input id="inv-email" type="email" placeholder="klant@email.nl"></div>
     <div class="field"><label>Adres</label><input id="inv-adres" placeholder="Straat + huisnummer"></div>
     <div class="field"><label>Plaats</label><input id="inv-plaats" placeholder="Plaats"></div>
     <div class="field"><label>Factuurnummer (optioneel)</label><input id="inv-nummer" placeholder="Bijv. 2026-001"></div>
     <div class="panel-actions">
       <button class="btn-ghost" onclick="closeInvoice()">Annuleren</button>
-      <button class="btn-success" onclick="downloadInvoice()">📥 Download PDF</button>
+      <button class="btn-ghost" onclick="downloadInvoice()">📥 Alleen downloaden</button>
+      <button class="btn-success" onclick="downloadAndEmailInvoice()">✉️ Downloaden + e-mail openen</button>
     </div>
   </div>
 </div>
@@ -591,10 +607,6 @@ button{font-family:'Inter',sans-serif;cursor:pointer;}
 <div class="toast" id="toast"></div>
 
 <script>
-// ──────────────────────────────────────────────────────────────
-// FIETSENLIJST MET localStorage (geen window.storage meer)
-// ──────────────────────────────────────────────────────────────
-
 let bikes = [];
 let filterStatus = 'alle';
 let sortMode = 'nieuw';
@@ -605,7 +617,6 @@ const STORAGE_KEY = 'fietsen-lijst';
 
 document.getElementById('datum').textContent = new Date().toLocaleDateString('nl-NL',{day:'numeric',month:'long',year:'numeric'});
 
-// ─── Opslag in localStorage ───
 function loadBikes() {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -699,7 +710,6 @@ function persist() {
   }
 }
 
-// ─── Reset demo-data ───
 function resetDemoData() {
   if (!confirm('Wil je alle fietsen vervangen door de demo-fietsen? (Je eigen toevoegingen gaan verloren!)')) return;
   localStorage.removeItem('import-rijwielservice-v1');
@@ -712,7 +722,6 @@ function resetDemoData() {
   showToast('Demo-fietsen hersteld!');
 }
 
-// ─── Import-fietsen ───
 function importBike(naam, merk, prijs, beschrijving, imgId, link){
   return {
     id: 'fiets_' + Math.random().toString(36).slice(2) + Date.now(),
@@ -754,14 +763,20 @@ function getImportBikes(){
   ];
 }
 
-// ─── De rest van de functies (render, stats, etc.) ───
-
 function fmtPrijs(p){
   const n = Number(p)||0;
   return '\u20ac ' + n.toLocaleString('nl-NL');
 }
-function fmtPrijsZonderEuro(p){
-  return (Number(p)||0).toLocaleString('nl-NL');
+
+function statusLabel(status){
+  if(status === 'verkocht') return 'Verkocht';
+  if(status === 'gereserveerd') return 'Gereserveerd';
+  return 'Te koop';
+}
+function statusClass(status){
+  if(status === 'verkocht') return 'verkocht';
+  if(status === 'gereserveerd') return 'gereserveerd';
+  return 'te-koop';
 }
 
 function showToast(msg){
@@ -813,17 +828,17 @@ function render(){
     resultCount.textContent = list.length + ' van ' + bikes.length + ' fietsen';
     list.forEach(b => {
       const el = document.createElement('div');
-      el.className = 'card';
+      const status = statusClass(b.status);
+      el.className = 'card' + (status === 'gereserveerd' ? ' is-gereserveerd' : '');
       el.onclick = () => openDetail(b.id);
       const photoHtml = b.foto
         ? `<img src="${escapeAttr(b.foto)}" onerror="this.parentElement.innerHTML='<div class=\\'no-photo\\'><svg width=\\'30\\' height=\\'30\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'currentColor\\' stroke-width=\\'1.6\\'><circle cx=\\'5.5\\' cy=\\'17.5\\' r=\\'3.5\\'/><circle cx=\\'18.5\\' cy=\\'17.5\\' r=\\'3.5\\'/><path d=\\'M5.5 17.5L10 8h4l4.5 9.5M10 8L8 5h3\\'/></svg></div>'">`
         : `<div class="no-photo"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/><path d="M5.5 17.5L10 8h4l4.5 9.5M10 8L8 5h3"/></svg></div>`;
-      const status = b.status === 'verkocht' ? 'verkocht' : 'te-koop';
       const linkTag = b.link ? `<span class="link-tag"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 14L21 3M21 3h-6M21 3v6"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>Marktplaats</span>` : '';
       el.innerHTML = `
         <div class="photo-wrap">
           ${photoHtml}
-          <span class="status-pill ${status}">${b.status==='verkocht'?'Verkocht':'Te koop'}</span>
+          <span class="status-pill ${status}">${statusLabel(b.status)}</span>
           <span class="views-pill"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>${b.weergaven||0}</span>
         </div>
         <div class="body">
@@ -843,7 +858,7 @@ function render(){
 
 function updateStats(){
   document.getElementById('stat-totaal').textContent = bikes.length;
-  document.getElementById('stat-tekoop').textContent = bikes.filter(b=>b.status!=='verkocht').length;
+  document.getElementById('stat-tekoop').textContent = bikes.filter(b=>(b.status||'te koop')==='te koop').length;
   document.getElementById('stat-views').textContent = bikes.reduce((s,b)=>s+(Number(b.weergaven)||0),0);
   const waarde = bikes.filter(b=>b.status!=='verkocht').reduce((s,b)=>s+(Number(b.prijs)||0),0);
   document.getElementById('stat-waarde').textContent = '\u20ac ' + waarde.toLocaleString('nl-NL');
@@ -858,7 +873,6 @@ function escapeAttr(str){
   return (str||'').replace(/"/g,'&quot;');
 }
 
-// ─── Event listeners ───
 document.getElementById('search-input').addEventListener('input', (e)=>{
   searchTerm = e.target.value;
   render();
@@ -876,7 +890,10 @@ document.getElementById('status-filter').addEventListener('click', (e)=>{
   render();
 });
 
-// ─── Formulier functies ───
+document.getElementById('f-status').addEventListener('change', (e)=>{
+  document.getElementById('reserve-fields').style.display = e.target.value === 'gereserveerd' ? 'grid' : 'none';
+});
+
 function openForm(id){
   document.getElementById('f-id').value = '';
   document.getElementById('f-naam').value = '';
@@ -886,6 +903,9 @@ function openForm(id){
   document.getElementById('f-beschrijving').value = '';
   document.getElementById('f-foto').value = '';
   document.getElementById('f-link').value = '';
+  document.getElementById('f-reserveerdoor').value = '';
+  document.getElementById('f-aanbetaling').value = '';
+  document.getElementById('reserve-fields').style.display = 'none';
   document.getElementById('form-title').textContent = 'Nieuwe fiets';
   document.getElementById('err-naam').style.display = 'none';
 
@@ -901,6 +921,9 @@ function openForm(id){
       document.getElementById('f-beschrijving').value = b.beschrijving || '';
       document.getElementById('f-foto').value = b.foto || '';
       document.getElementById('f-link').value = b.link || '';
+      document.getElementById('f-reserveerdoor').value = b.reserveerdoor || '';
+      document.getElementById('f-aanbetaling').value = b.aanbetaling || '';
+      document.getElementById('reserve-fields').style.display = (b.status === 'gereserveerd') ? 'grid' : 'none';
     }
   }
   document.getElementById('form-overlay').classList.add('open');
@@ -919,14 +942,17 @@ function saveForm(){
     document.getElementById('f-naam').focus();
     return;
   }
+  const status = document.getElementById('f-status').value;
   const data = {
     naam,
     merk: document.getElementById('f-merk').value.trim(),
     prijs: document.getElementById('f-prijs').value,
-    status: document.getElementById('f-status').value,
+    status,
     beschrijving: document.getElementById('f-beschrijving').value.trim(),
     foto: document.getElementById('f-foto').value.trim(),
-    link: document.getElementById('f-link').value.trim()
+    link: document.getElementById('f-link').value.trim(),
+    reserveerdoor: status === 'gereserveerd' ? document.getElementById('f-reserveerdoor').value.trim() : '',
+    aanbetaling: status === 'gereserveerd' ? document.getElementById('f-aanbetaling').value : ''
   };
 
   if(id){
@@ -947,15 +973,18 @@ function saveForm(){
   closeForm();
 }
 
-// ─── Detail ───
 function openDetail(id){
   const b = bikes.find(x=>x.id===id);
   if(!b) return;
   const photoHtml = b.foto
     ? `<img src="${escapeAttr(b.foto)}" onerror="this.parentElement.innerHTML='<div class=\\'no-photo\\'><svg width=\\'40\\' height=\\'40\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'currentColor\\' stroke-width=\\'1.4\\'><circle cx=\\'5.5\\' cy=\\'17.5\\' r=\\'3.5\\'/><circle cx=\\'18.5\\' cy=\\'17.5\\' r=\\'3.5\\'/><path d=\\'M5.5 17.5L10 8h4l4.5 9.5M10 8L8 5h3\\'/></svg></div>'">`
     : `<div class="no-photo"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/><path d="M5.5 17.5L10 8h4l4.5 9.5M10 8L8 5h3"/></svg></div>`;
-  const badgeClass = b.status === 'verkocht' ? 'verkocht' : 'te-koop';
+  const status = statusClass(b.status);
   const datum = b.toegevoegd ? new Date(b.toegevoegd).toLocaleDateString('nl-NL',{day:'numeric',month:'short',year:'numeric'}) : '\u2013';
+
+  const reserveNote = status === 'gereserveerd'
+    ? `<div class="reserve-note">🔒 Gereserveerd${b.reserveerdoor ? ' door ' + escapeHtml(b.reserveerdoor) : ''}${b.aanbetaling ? ' — aanbetaling ' + fmtPrijs(b.aanbetaling) : ''}</div>`
+    : '';
 
   document.getElementById('detail-content').innerHTML = `
     <div class="detail-photo-wrap">${photoHtml}</div>
@@ -964,9 +993,10 @@ function openDetail(id){
         <h2 style="margin-bottom:2px;">${escapeHtml(b.naam)}</h2>
         <div style="color:var(--ink-soft);font-size:13px;">${escapeHtml(b.merk||'')}</div>
       </div>
-      <span class="badge ${badgeClass}">${b.status==='verkocht'?'Verkocht':'Te koop'}</span>
+      <span class="badge ${status}">${statusLabel(b.status)}</span>
     </div>
     <div class="detail-prijs">${fmtPrijs(b.prijs)}</div>
+    ${reserveNote}
     <p class="detail-desc">${escapeHtml(b.beschrijving) || '<span style="color:var(--ink-faint)">Geen beschrijving toegevoegd.</span>'}</p>
     <div class="detail-meta">
       <div class="item"><span>Toegevoegd</span>${datum}</div>
@@ -1012,10 +1042,6 @@ function deleteBike(id){
   showToast('Fiets verwijderd');
 }
 
-// ──────────────────────────────────────────────────────────────
-// 🧾 FACTUURFUNCTIES
-// ──────────────────────────────────────────────────────────────
-
 function openInvoice(bikeId) {
   currentInvoiceBikeId = bikeId;
   const b = bikes.find(x => x.id === bikeId);
@@ -1036,7 +1062,8 @@ function openInvoice(bikeId) {
     </div>
   `;
 
-  document.getElementById('inv-klantnaam').value = '';
+  document.getElementById('inv-klantnaam').value = b.reserveerdoor || '';
+  document.getElementById('inv-email').value = '';
   document.getElementById('inv-adres').value = '';
   document.getElementById('inv-plaats').value = '';
   document.getElementById('inv-nummer').value = generateInvoiceNumber();
@@ -1060,10 +1087,10 @@ function generateInvoiceNumber() {
   return `${year}${month}${day}-${String(newCount).padStart(3,'0')}`;
 }
 
-function downloadInvoice() {
-  if (!currentInvoiceBikeId) return;
+function buildAndDownloadPdf() {
+  if (!currentInvoiceBikeId) return null;
   const b = bikes.find(x => x.id === currentInvoiceBikeId);
-  if (!b) return;
+  if (!b) return null;
 
   const klant = document.getElementById('inv-klantnaam').value.trim() || 'Onbekend';
   const adres = document.getElementById('inv-adres').value.trim() || '';
@@ -1139,11 +1166,47 @@ function downloadInvoice() {
   doc.text('Bedankt voor uw aankoop!', pageWidth/2, pageHeight - 20, { align: 'center' });
 
   doc.save(`Factuur_${factuurnr}.pdf`);
+  return { bike: b, klant, factuurnr };
+}
+
+function downloadInvoice() {
+  const result = buildAndDownloadPdf();
+  if (!result) return;
   showToast('Factuur gedownload!');
   closeInvoice();
 }
 
-// ─── PWA installatie ───
+function downloadAndEmailInvoice() {
+  const email = document.getElementById('inv-email').value.trim();
+  if (!email) {
+    showToast('Vul eerst een e-mailadres in.');
+    document.getElementById('inv-email').focus();
+    return;
+  }
+  const result = buildAndDownloadPdf();
+  if (!result) return;
+
+  const onderwerp = `Factuur ${result.factuurnr} - ${result.bike.naam}`;
+  const bodyLines = [
+    `Beste ${result.klant},`,
+    '',
+    `Bijgaand de factuur (${result.factuurnr}) voor de ${result.bike.naam}.`,
+    '',
+    'Let op: de PDF is zojuist gedownload naar je computer/telefoon —',
+    'sleep of voeg die even toe als bijlage voordat je dit bericht verstuurt.',
+    '',
+    'Met vriendelijke groet,',
+    'Rijwielservice Limburg'
+  ];
+  const mailtoUrl = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(onderwerp)}&body=${encodeURIComponent(bodyLines.join('\n'))}`;
+
+  showToast('PDF gedownload — e-mail wordt geopend...');
+  setTimeout(() => {
+    window.location.href = mailtoUrl;
+  }, 400);
+  closeInvoice();
+}
+
 let deferredPrompt;
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
@@ -1163,7 +1226,6 @@ window.addEventListener('appinstalled', () => {
   document.getElementById('installBanner').classList.remove('show');
 });
 
-// ─── Service Worker ───
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('service-worker.js')
@@ -1172,10 +1234,7 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-// ─── Start app ───
 loadBikes();
 </script>
 </body>
 </html>
-
-
