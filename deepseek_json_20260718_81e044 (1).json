@@ -1,0 +1,24 @@
+{
+  "name": "Fietsdossier",
+  "short_name": "Fietsdossier",
+  "description": "Houd al je fietsen bij in een overzichtelijk dossier",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#EDE8DE",
+  "theme_color": "#EDE8DE",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

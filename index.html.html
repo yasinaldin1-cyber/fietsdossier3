@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<title>Fietsdossier</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap');
+
+:root{
+  --bg:#EDE8DE;
+  --surface:#FFFDF9;
+  --surface-2:#F7F3EA;
+  --ink:#241F1B;
+  --ink-soft:#726A5E;
+  --ink-faint:#9C9384;
+  --accent:#D65A2E;
+  --accent-dark:#A8431F;
+  --accent-tint:#F7E4DB;
+  --steel:#2F5D74;
+  --steel-tint:#DCE9EC;
+  --green:#3E7A4E;
+  --green-tint:#E1EFE3;
+  --line:#DCD3BF;
+  --line-strong:#C7BB9F;
+  --shadow:0 10px 24px rgba(36,31,27,0.08);
+  --shadow-sm:0 3px 8px rgba(36,31,27,0.06);
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#1C1916;
+    --surface:#262220;
+    --surface-2:#2D2926;
+    --ink:#F1ECE3;
+    --ink-soft:#B4AA98;
+    --ink-faint:#7D7364;
+    --accent:#E8703F;
+    --accent-dark:#F08A5F;
+    --accent-tint:#3B2A21;
+    --steel:#7FB2C9;
+    --steel-tint:#20343C;
+    --green:#7FBE8F;
+    --green-tint:#1E2E22;
+    --line:#3A3530;
+    --line-strong:#4A443C;
+    --shadow:0 10px 24px rgba(0,0,0,0.35);
+    --shadow-sm:0 3px 8px rgba(0,0,0,0.25);
+  }
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:'Inter',sans-serif;
+  padding:28px 20px 90px;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1040px;margin:0 auto;}
+
+/* header */
+.header{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:16px;
+  flex-wrap:wrap;
+  border-bottom:3px solid var(--ink);
+  padding-bottom:16px;
+  margin-bottom:20px;
+}
+.header .brand{display:flex;align-items:center;gap:12px;}
+.brand-mark{
+  width:40px;height:40px;
+  border-radius:50%;
+  background:var(--accent);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.header h1{
+  font-family:'Oswald',sans-serif;
+  font-weight:700;
+  font-size:32px;
+  letter-spacing:.5px;
+  text-transform:uppercase;
+  margin:0;
+  line-height:1;
+}
+.header .sub{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:11px;
+  color:var(--ink-soft);
+  text-transform:uppercase;
+  letter-spacing:1px;
+  margin-top:4px;
+}
+
+/* stats */
+.stats{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:12px;
+  margin-bottom:22px;
+}
+.stat{
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:14px 16px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  box-shadow:var(--shadow-sm);
+}
+.stat .icon{
+  width:36px;height:36px;
+  border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.stat .icon.orange{background:var(--accent-tint);color:var(--accent-dark);}
+.stat .icon.steel{background:var(--steel-tint);color:var(--steel);}
+.stat .icon.green{background:var(--green-tint);color:var(--green);}
+.stat .icon.gray{background:var(--surface-2);color:var(--ink-soft);}
+.stat .num{
+  font-family:'IBM Plex Mono',monospace;
+  font-weight:600;
+  font-size:22px;
+  line-height:1;
+}
+.stat .lbl{
+  font-size:11px;
+  color:var(--ink-soft);
+  text-transform:uppercase;
+  letter-spacing:.5px;
+  margin-top:2px;
+}
+
+/* toolbar */
+.toolbar{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  flex-wrap:wrap;
+  margin-bottom:22px;
+}
+.search-box{
+  position:relative;
+  flex:1;
+  min-width:200px;
+}
+.search-box svg{
+  position:absolute;
+  left:12px;top:50%;
+  transform:translateY(-50%);
+  color:var(--ink-faint);
+  pointer-events:none;
+}
+.search-box input{
+  width:100%;
+  padding:10px 12px 10px 38px;
+  border:1px solid var(--line-strong);
+  border-radius:8px;
+  font-family:'Inter',sans-serif;
+  font-size:14px;
+  background:var(--surface);
+  color:var(--ink);
+}
+.search-box input:focus{outline:2px solid var(--accent);outline-offset:-1px;}
+
+.chip-group{display:flex;gap:6px;}
+.chip{
+  padding:8px 14px;
+  border-radius:20px;
+  border:1px solid var(--line-strong);
+  background:var(--surface);
+  color:var(--ink-soft);
+  font-size:13px;
+  font-weight:500;
+  cursor:pointer;
+  white-space:nowrap;
+}
+.chip.active{background:var(--ink);color:var(--bg);border-color:var(--ink);}
+
+select#sort-select{
+  padding:10px 12px;
+  border:1px solid var(--line-strong);
+  border-radius:8px;
+  background:var(--surface);
+  color:var(--ink);
+  font-family:'Inter',sans-serif;
+  font-size:13px;
+}
+
+button{font-family:'Inter',sans-serif;cursor:pointer;}
+.btn-primary{
+  background:var(--accent);
+  color:#fff;
+  border:none;
+  padding:10px 20px;
+  border-radius:8px;
+  font-weight:600;
+  font-size:14px;
+  white-space:nowrap;
+}
+.btn-primary:hover{background:var(--accent-dark);}
+.btn-ghost{
+  background:transparent;
+  border:1px solid var(--line-strong);
+  color:var(--ink);
+  padding:9px 16px;
+  border-radius:8px;
+  font-size:14px;
+  font-weight:500;
+}
+.btn-ghost:hover{background:var(--surface-2);}
+.btn-danger{
+  background:transparent;
+  border:1px solid #C2534A;
+  color:#C2534A;
+  padding:9px 16px;
+  border-radius:8px;
+  font-size:14px;
+}
+.btn-danger:hover{background:var(--accent-tint);}
+
+.result-count{
+  font-size:12px;
+  color:var(--ink-faint);
+  margin-bottom:14px;
+}
+
+/* grid */
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+  gap:20px;
+}
+
+.card{
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:14px;
+  overflow:hidden;
+  cursor:pointer;
+  transition:transform .15s ease, box-shadow .15s ease;
+  animation:fadein .25s ease;
+}
+@keyframes fadein{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+.card:hover{transform:translateY(-4px);box-shadow:var(--shadow);}
+.card .photo-wrap{
+  position:relative;
+  width:100%;
+  height:150px;
+  background:var(--steel-tint);
+}
+.card .photo-wrap img{width:100%;height:100%;object-fit:cover;display:block;}
+.card .photo-wrap .no-photo{
+  width:100%;height:100%;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--steel);
+}
+.card .status-pill{
+  position:absolute;
+  top:10px;left:10px;
+  font-size:10px;
+  text-transform:uppercase;
+  letter-spacing:.5px;
+  font-weight:600;
+  padding:4px 9px;
+  border-radius:20px;
+  background:rgba(255,253,249,0.92);
+}
+.card .status-pill.te-koop{color:var(--accent-dark);}
+.card .status-pill.verkocht{color:var(--steel);}
+.card .views-pill{
+  position:absolute;
+  top:10px;right:10px;
+  font-size:11px;
+  font-family:'IBM Plex Mono',monospace;
+  font-weight:600;
+  padding:4px 9px;
+  border-radius:20px;
+  background:rgba(36,31,27,0.72);
+  color:#fff;
+  display:flex;
+  align-items:center;
+  gap:4px;
+}
+.card .body{padding:12px 14px 14px;}
+.card .naam{
+  font-family:'Oswald',sans-serif;
+  font-weight:600;
+  font-size:16px;
+  margin:0 0 1px;
+  text-transform:uppercase;
+  letter-spacing:.3px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.card .merk{
+  font-size:12px;
+  color:var(--ink-soft);
+  margin:0 0 10px;
+}
+.card .row{display:flex;justify-content:space-between;align-items:center;}
+.card .prijs{
+  font-family:'IBM Plex Mono',monospace;
+  font-weight:600;
+  font-size:17px;
+}
+.card .link-tag{
+  font-size:11px;
+  color:var(--ink-faint);
+  display:flex;align-items:center;gap:4px;
+}
+
+.empty{
+  text-align:center;
+  padding:70px 20px;
+  color:var(--ink-soft);
+  border:1px dashed var(--line-strong);
+  border-radius:14px;
+}
+.empty h3{font-family:'Oswald',sans-serif;color:var(--ink);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
+
+/* overlays */
+.overlay{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(28,25,22,0.5);
+  align-items:flex-start;
+  justify-content:center;
+  padding:40px 16px;
+  overflow-y:auto;
+  z-index:50;
+}
+.overlay.open{display:flex;}
+.panel{
+  background:var(--surface);
+  border-radius:14px;
+  max-width:480px;
+  width:100%;
+  padding:26px 28px 28px;
+  border:1px solid var(--line);
+  box-shadow:var(--shadow);
+}
+.panel h2{
+  font-family:'Oswald',sans-serif;
+  text-transform:uppercase;
+  letter-spacing:.5px;
+  font-size:22px;
+  margin:0 0 18px;
+}
+.field{margin-bottom:14px;}
+.field label{
+  display:block;
+  font-size:12px;
+  text-transform:uppercase;
+  letter-spacing:.4px;
+  color:var(--ink-soft);
+  margin-bottom:4px;
+}
+.field input, .field select, .field textarea{
+  width:100%;
+  padding:9px 10px;
+  border:1px solid var(--line-strong);
+  border-radius:8px;
+  font-family:'Inter',sans-serif;
+  font-size:14px;
+  background:var(--surface);
+  color:var(--ink);
+}
+.field input:focus, .field select:focus, .field textarea:focus{outline:2px solid var(--accent);outline-offset:-1px;}
+.field textarea{resize:vertical;min-height:60px;}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.field-error{font-size:12px;color:#C2534A;margin-top:4px;display:none;}
+.panel-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;}
+
+.detail-photo-wrap{
+  width:100%;height:220px;
+  border-radius:12px;
+  background:var(--steel-tint);
+  margin-bottom:16px;
+  overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+}
+.detail-photo-wrap img{width:100%;height:100%;object-fit:cover;}
+.detail-photo-wrap .no-photo{color:var(--steel);}
+.detail-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
+.detail-prijs{font-family:'IBM Plex Mono',monospace;font-size:24px;font-weight:600;margin-top:8px;}
+.badge{font-size:10px;text-transform:uppercase;letter-spacing:.5px;font-weight:600;padding:4px 10px;border-radius:20px;flex-shrink:0;}
+.badge.te-koop{background:var(--accent-tint);color:var(--accent-dark);}
+.badge.verkocht{background:var(--steel-tint);color:var(--steel);}
+.detail-desc{font-size:14px;line-height:1.65;color:var(--ink);margin:16px 0;white-space:pre-wrap;}
+.detail-meta{
+  display:flex;gap:22px;flex-wrap:wrap;
+  border-top:1px solid var(--line);
+  border-bottom:1px solid var(--line);
+  padding:14px 0;margin-bottom:16px;
+}
+.detail-meta .item{font-size:13px;}
+.detail-meta .item span{display:block;color:var(--ink-soft);font-size:11px;text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px;}
+.views-editor{display:flex;align-items:center;gap:8px;}
+.views-editor input{width:70px;padding:6px 8px;border:1px solid var(--line-strong);border-radius:6px;font-family:'IBM Plex Mono',monospace;text-align:center;background:var(--surface);color:var(--ink);}
+.link-btn{
+  display:inline-flex;align-items:center;gap:6px;
+  background:var(--steel);color:#fff;
+  text-decoration:none;padding:11px 18px;border-radius:8px;
+  font-size:14px;font-weight:600;margin-top:2px;
+}
+.link-btn:hover{filter:brightness(0.92);}
+.small-note{font-size:12px;color:var(--ink-faint);margin-top:8px;}
+
+.toast{
+  position:fixed;
+  bottom:24px;left:50%;
+  transform:translateX(-50%) translateY(10px);
+  background:var(--ink);
+  color:var(--bg);
+  padding:10px 18px;
+  border-radius:8px;
+  font-size:13px;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .2s ease, transform .2s ease;
+  z-index:100;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+@media (max-width:640px){
+  .stats{grid-template-columns:repeat(2,1fr);}
+  .field-row{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="header">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/><path d="M5.5 17.5L10 8h4l4.5 9.5M10 8L8 5h3"/></svg>
+      </div>
+      <div>
+        <h1>Fietsdossier</h1>
+        <div class="sub" id="datum"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="icon gray"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/><path d="M5.5 17.5L10 8h4l4.5 9.5M10 8L8 5h3"/></svg></div><div><div class="num" id="stat-totaal">0</div><div class="lbl">Fietsen</div></div></div>
+    <div class="stat"><div class="icon orange"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.2H22l-6 4.4 2.3 7.2L12 16.4l-6.3 4.4 2.3-7.2-6-4.4h7.6z"/></svg></div><div><div class="num" id="stat-tekoop">0</div><div class="lbl">Te koop</div></div></div>
+    <div class="stat"><div class="icon steel"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg></div><div><div class="num" id="stat-views">0</div><div class="lbl">Weergaven</div></div></div>
+    <div class="stat"><div class="icon green"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div><div class="num" id="stat-waarde">€0</div><div class="lbl">Totale waarde</div></div></div>
+  </div>
+
+  <div class="toolbar">
+    <div class="search-box">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      <input type="text" id="search-input" placeholder="Zoek op naam of merk...">
+    </div>
+    <div class="chip-group" id="status-filter">
+      <div class="chip active" data-status="alle">Alle</div>
+      <div class="chip" data-status="te koop">Te koop</div>
+      <div class="chip" data-status="verkocht">Verkocht</div>
+    </div>
+    <select id="sort-select">
+      <option value="nieuw">Nieuwste eerst</option>
+      <option value="prijs-laag">Prijs: laag - hoog</option>
+      <option value="prijs-hoog">Prijs: hoog - laag</option>
+      <option value="views">Meest bekeken</option>
+      <option value="naam">Naam A-Z</option>
+    </select>
+    <button class="btn-primary" onclick="openForm()">+ Nieuwe fiets</button>
+  </div>
+
+  <div class="result-count" id="result-count"></div>
+  <div id="grid" class="grid"></div>
+  <div id="empty" class="empty" style="display:none;">
+    <h3 id="empty-title">Nog geen fietsen</h3>
+    <p id="empty-body">Voeg je eerste fiets toe om een dossier aan te maken.</p>
+  </div>
+</div>
+
+<div class="overlay" id="form-overlay">
+  <div class="panel">
+    <h2 id="form-title">Nieuwe fiets</h2>
+    <input type="hidden" id="f-id">
+    <div class="field-row">
+      <div class="field"><label>Naam / type</label><input id="f-naam" placeholder="Bijv. Damesfiets 28 inch"><div class="field-error" id="err-naam">Geef de fiets een naam of type.</div></div>
+      <div class="field"><label>Merk</label><input id="f-merk" placeholder="Bijv. Gazelle"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Prijs (&euro;)</label><input id="f-prijs" type="number" placeholder="150"></div>
+      <div class="field"><label>Status</label>
+        <select id="f-status">
+          <option value="te koop">Te koop</option>
+          <option value="verkocht">Verkocht</option>
+        </select>
+      </div>
+    </div>
+    <div class="field"><label>Beschrijving</label><textarea id="f-beschrijving" placeholder="Staat, extra's, ophalen/verzenden..."></textarea></div>
+    <div class="field"><label>Foto (URL)</label><input id="f-foto" placeholder="https://..."></div>
+    <div class="field"><label>Link naar Marktplaats-advertentie</label><input id="f-link" placeholder="https://www.marktplaats.nl/v/..."></div>
+    <div class="panel-actions">
+      <button class="btn-ghost" onclick="closeForm()">Annuleren</button>
+      <button class="btn-primary" onclick="saveForm()">Opslaan</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="detail-overlay">
+  <div class="panel" style="max-width:520px;">
+    <div id="detail-content"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let bikes = [];
+let filterStatus = 'alle';
+let sortMode = 'nieuw';
+let searchTerm = '';
+
+const STORAGE_KEY = 'fietsen-lijst';
+
+document.getElementById('datum').textContent = new Date().toLocaleDateString('nl-NL',{day:'numeric',month:'long',year:'numeric'});
+
+async function loadBikes(){
+  try{
+    const res = await window.storage.get(STORAGE_KEY, false);
+    bikes = res ? JSON.parse(res.value) : [];
+  }catch(e){
+    bikes = [];
+  }
+
+  const IMPORT_FLAG_KEY = 'import-rijwielservice-v1';
+  let alreadyImported = false;
+  try{
+    const flag = await window.storage.get(IMPORT_FLAG_KEY, false);
+    alreadyImported = !!flag;
+  }catch(e){
+    alreadyImported = false;
+  }
+  if(!alreadyImported){
+    bikes = bikes.concat(getImportBikes());
+    await persist();
+    try{ await window.storage.set(IMPORT_FLAG_KEY, 'true', false); }catch(e){}
+  }
+
+  const LINKS_FLAG_KEY = 'links-rijwielservice-v1';
+  let linksApplied = false;
+  try{
+    const flag = await window.storage.get(LINKS_FLAG_KEY, false);
+    linksApplied = !!flag;
+  }catch(e){
+    linksApplied = false;
+  }
+  if(!linksApplied){
+    const linkMap = {
+      'd3b1f868':'https://www.marktplaats.nl/v/fietsen-en-brommers/fietsen-heren-herenfietsen/m2412227076-batavus-herenfiets',
+      '115c8399':'https://www.marktplaats.nl/v/fietsen-en-brommers/fietsen-heren-herenfietsen/m2412219782-batavus-herenfiets',
+      'f2f8b7b9':'https://www.marktplaats.nl/v/fietsen-en-brommers/fietsen-dames-damesfietsen/m2412225529-target-damesfiets',
+      '5a502005':'https://www.marktplaats.nl/v/fietsen-en-brommers/fietsen-heren-herenfietsen/m2412223712-sparta-herenfiets',
+      '8c59a137':'https://www.marktplaats.nl/v/fietsen-en-brommers/fietsen-heren-herenfietsen/m2413257990-batavus-herenfiets',
+      '313cb7c3':'https://www.marktplaats.nl/v/fietsen-en-brommers/fietsen-heren-herenfietsen/m2412218970-gazelle-herenfiets',
+      '5bafefb8':'https://www.marktplaats.nl/v/fietsen-en-brommers/fietsen-heren-herenfietsen/m2412217919-gazelle-herenfiets',
+      '55c7016d':'https://www.marktplaats.nl/v/fietsen-en-brommers/fietsen-heren-herenfietsen/m2412216985-giant-herenfiets',
+      '3b037be4':'https://www.marktplaats.nl/v/fietsen-en-brommers/fietsen-dames-damesfietsen/m2412211709-cotrina-damesfiets',
+      '4b01eae9':'https://www.marktplaats.nl/v/fietsen-en-brommers/fietsen-dames-damesfietsen/m2412210303-gazelle-damesfiets',
+      '80dc258c':'https://www.marktplaats.nl/v/fietsen-en-brommers/fietsen-dames-damesfietsen/m2412206118-pegasus-damesfiets',
+      '5de4b15f':'https://www.marktplaats.nl/v/fietsen-en-brommers/fietsen-heren-herenfietsen/m2413264719-batavus-herenfiets',
+      '658b28bc':'https://www.marktplaats.nl/v/fietsen-en-brommers/fietsen-heren-herenfietsen/m2412209424-batavus-damesfiets',
+      'e3eeb1bf':'https://www.marktplaats.nl/v/fietsen-en-brommers/fietsen-dames-damesfietsen/m2413252254-batvus-damesfiets',
+      '200f795e':'https://www.marktplaats.nl/v/fietsen-en-brommers/fietsen-dames-omafietsen/m2413257082-cotrina-damesfiets',
+      'e662bc24':'https://www.marktplaats.nl/v/fietsen-en-brommers/fietsen-dames-damesfietsen/m2413253986-batvus-damesfiets',
+      'e6cd12a4':'https://www.marktplaats.nl/v/fietsen-en-brommers/fietsen-dames-omafietsen/m2413053552-sparta-damesfiets',
+      '08bad69b':'https://www.marktplaats.nl/v/fietsen-en-brommers/fietsen-dames-omafietsen/m2412980103-spirit-damesfiets',
+      '109b1ee4':'https://www.marktplaats.nl/v/fietsen-en-brommers/fietsen-dames-damesfietsen/m2412979327-giant-damesfiets',
+      '514293e7':'https://www.marktplaats.nl/v/fietsen-en-brommers/fietsen-vouwfietsen/m2412224577-pelikaan-vouwfiets',
+      'd18387b4':'https://www.marktplaats.nl/v/fietsen-en-brommers/fietsen-dames-moederfietsen/m2412221126-moederfiets'
+    };
+    bikes.forEach(b => {
+      if(!b.foto) return;
+      for(const imgId in linkMap){
+        if(b.foto.indexOf(imgId) !== -1 && !b.link){
+          b.link = linkMap[imgId];
+          break;
+        }
+      }
+    });
+    await persist();
+    try{ await window.storage.set(LINKS_FLAG_KEY, 'true', false); }catch(e){}
+  }
+
+  const CORRECTION_FLAG_KEY = 'correction-v1';
+  let correctionApplied = false;
+  try{
+    const flag = await window.storage.get(CORRECTION_FLAG_KEY, false);
+    correctionApplied = !!flag;
+  }catch(e){
+    correctionApplied = false;
+  }
+  if(!correctionApplied){
+    bikes.forEach(b => {
+      if(b.foto && b.foto.indexOf('d3b1f868') !== -1){
+        b.link = 'https://www.marktplaats.nl/v/fietsen-en-brommers/fietsen-heren-herenfietsen/m2412227076-batavus-herenfiets';
+        b.weergaven = 96;
+      }
+      if(b.foto && b.foto.indexOf('115c8399') !== -1 && !b.link){
+        b.link = 'https://www.marktplaats.nl/v/fietsen-en-brommers/fietsen-heren-herenfietsen/m2412219782-batavus-herenfiets';
+      }
+    });
+    await persist();
+    try{ await window.storage.set(CORRECTION_FLAG_KEY, 'true', false); }catch(e){}
+  }
+
+  const VIEWS_FLAG_KEY = 'views-refresh-v1';
+  let viewsApplied = false;
+  try{
+    const flag = await window.storage.get(VIEWS_FLAG_KEY, false);
+    viewsApplied = !!flag;
+  }catch(e){
+    viewsApplied = false;
+  }
+  if(!viewsApplied){
+    const viewsMap = { 'f2f8b7b9': 103 };
+    bikes.forEach(b => {
+      if(!b.foto) return;
+      for(const imgId in viewsMap){
+        if(b.foto.indexOf(imgId) !== -1 && (!b.weergaven || b.weergaven === 0)){
+          b.weergaven = viewsMap[imgId];
+          break;
+        }
+      }
+    });
+    await persist();
+    try{ await window.storage.set(VIEWS_FLAG_KEY, 'true', false); }catch(e){}
+  }
+
+  render();
+}
+
+function importBike(naam, merk, prijs, beschrijving, imgId, link){
+  return {
+    id: 'fiets_' + Math.random().toString(36).slice(2) + Date.now(),
+    naam, merk, prijs,
+    status: 'te koop',
+    beschrijving,
+    foto: imgId ? ('https://images.marktplaats.com/api/v1/hz-mp-pro-listing/images/' + imgId + '?rule=ecg_mp_eps$_83') : '',
+    link: link || '',
+    weergaven: 0,
+    toegevoegd: new Date().toISOString()
+  };
+}
+
+function getImportBikes(){
+  return [
+    importBike('Batavus Herenfiets','Batavus',130,'Batavus herenfiets 28 inch, 3 versnellingen, alles werkt goed. Ophalen in IJsselsteyn.','d3b1f868-b802-47fd-91f1-2ead5479eea6'),
+    importBike('Target Damesfiets','Target',125,'Target damesfiets 28 inch, 3 versnellingen, alles werkt goed. Ophalen in IJsselsteyn.','f2f8b7b9-f075-41a2-94e3-e8d572bfcf38'),
+    importBike('Sparta Herenfiets','Sparta',100,'Sparta herenfiets 28 inch, 3 versnellingen, alles werkt goed. Ophalen in IJsselsteyn.','5a502005-3a34-44d6-b772-ff716bb82ead'),
+    importBike('Batavus Herenfiets','Batavus',175,'Batavus herenfiets 28 inch, 12 versnellingen, alles werkt goed. Ophalen in IJsselsteyn.','8c59a137-a7d8-4c57-bf6d-a18c335f3e44'),
+    importBike('Gazelle Herenfiets','Gazelle',250,'Gazelle herenfiets 28 inch, 7 versnellingen, alles werkt goed. Ophalen in IJsselsteyn.','313cb7c3-d316-4ec3-9d09-628b7ea776d0'),
+    importBike('Gazelle Herenfiets','Gazelle',225,'Gazelle herenfiets 28 inch, 7 versnellingen, alles werkt goed. Ophalen in IJsselsteyn.','5bafefb8-624c-4327-9fb2-019daf5d82f2'),
+    importBike('Giant Herenfiets','Giant',150,'Giant herenfiets 28 inch, 7 versnellingen, alles werkt prima. Ophalen in IJsselsteyn.','55c7016d-596e-49aa-a728-2addfd329ec0'),
+    importBike('Cotrina Damesfiets','Cotrina',150,'Cotrina damesfiets 28 inch, terugtraprem, alles werkt goed. Ophalen in IJsselsteyn.','3b037be4-5494-4a75-a2ff-dfacc59dc7c6'),
+    importBike('Gazelle Damesfiets','Gazelle',170,'Damesfiets Gazelle 28 inch, 7 versnellingen, alles werkt goed. Ophalen in IJsselsteyn.','4b01eae9-de17-4632-a42a-5fe4bafc69a9'),
+    importBike('Pegasus Damesfiets','Pegasus',150,'Pegasus damesfiets 28 inch, 7 versnellingen, alles werkt goed. Ophalen in IJsselsteyn.','80dc258c-e03d-4f7f-8d6a-6e9adc74146c'),
+    importBike('Batavus Herenfiets','Batavus',280,'Batavus herenfiets 28 inch, 8 versnellingen, alles werkt goed. Ophalen in IJsselsteyn.','5de4b15f-1900-4008-b07e-b6a742c0f704'),
+    importBike('Batavus Damesfiets','Batavus',250,'Batavus damesfiets 28 inch, 7 versnellingen, alles werkt goed.','658b28bc-f699-47c3-8063-2672e87c65da'),
+    importBike('Batavus Damesfiets','Batavus',170,'Batavus damesfiets 28 inch, 7 versnellingen, alles werkt goed. Ophalen in IJsselsteyn.','e3eeb1bf-3f0b-42f8-811b-35e56b71dabb'),
+    importBike('Batavus Herenfiets','Batavus',250,'Batavus herenfiets 28 inch, 8 versnellingen, alles werkt goed. Ophalen in IJsselsteyn.','115c8399-9e19-4ffc-b548-0864b462be1d'),
+    importBike('Cotrina Damesfiets','Cotrina',220,'Cotrina damesfiets 28 inch, 3 versnellingen, alles werkt goed. Ophalen in IJsselsteyn.','200f795e-632b-4128-a9ed-7015bdc3add5'),
+    importBike('Batavus Damesfiets','Batavus',200,'Batavus damesfiets 28 inch, 7 versnellingen, alles werkt prima. Ophalen in IJsselsteyn.','e662bc24-1b57-4323-9041-74af6d892525'),
+    importBike('Batavus Damesfiets','Batavus',180,'Batavus damesfiets 28 inch, 7 versnellingen, alles werkt goed. Ophalen in IJsselsteyn.','1522774e-ea8c-41c2-b5b5-778ceb86fabd'),
+    importBike('Sparta Damesfiets','Sparta',80,'Sparta damesfiets 28 inch, 3 versnellingen, alles werkt goed. Ophalen in IJsselsteyn.','e6cd12a4-0b89-4e6b-845b-7856c2c712c5'),
+    importBike('Spirit Damesfiets','Spirit',160,'Spirit damesfiets 28 inch, 3 versnellingen, alles werkt goed. Ophalen in IJsselsteyn.','08bad69b-08c3-4b57-b898-f53778b15c4a'),
+    importBike('Giant Damesfiets','Giant',150,'Giant damesfiets 28 inch, 3 versnellingen, alles werkt goed. Ophalen in IJsselsteyn.','109b1ee4-0929-441f-b54e-02eedae329aa'),
+    importBike('Pelikaan Vouwfiets','Pelikaan',75,'Pelikaan vouwfiets in goede staat. Ophalen in IJsselsteyn.','514293e7-666c-4da3-b3b2-2137ac6830a0'),
+    importBike('Moederfiets','',185,'Moederfiets 28 inch, alles werkt goed. Ophalen in IJsselsteyn.','d18387b4-3b4e-4a54-a1ac-ba3a6fbcf566'),
+    importBike('Batavus Damesfiets','Batavus',350,'Batavus damesfiets 28 inch, 7 versnellingen, alles werkt goed. Ophalen in IJsselsteyn.','bc12302a-9e5b-4b73-b886-bca05bfe9211')
+  ];
+}
+
+async function persist(){
+  try{
+    await window.storage.set(STORAGE_KEY, JSON.stringify(bikes), false);
+  }catch(e){
+    console.error('Opslaan mislukt', e);
+    showToast('Opslaan is mislukt. Probeer opnieuw.');
+  }
+}
+
+function fmtPrijs(p){
+  const n = Number(p)||0;
+  return '\u20ac ' + n.toLocaleString('nl-NL');
+}
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+function getFilteredSorted(){
+  let list = bikes.slice();
+  if(filterStatus !== 'alle'){
+    list = list.filter(b => (b.status||'te koop') === filterStatus);
+  }
+  if(searchTerm.trim()){
+    const q = searchTerm.trim().toLowerCase();
+    list = list.filter(b => (b.naam||'').toLowerCase().includes(q) || (b.merk||'').toLowerCase().includes(q));
+  }
+  switch(sortMode){
+    case 'prijs-laag': list.sort((a,b)=>(Number(a.prijs)||0)-(Number(b.prijs)||0)); break;
+    case 'prijs-hoog': list.sort((a,b)=>(Number(b.prijs)||0)-(Number(a.prijs)||0)); break;
+    case 'views': list.sort((a,b)=>(Number(b.weergaven)||0)-(Number(a.weergaven)||0)); break;
+    case 'naam': list.sort((a,b)=>(a.naam||'').localeCompare(b.naam||'')); break;
+    default: list.sort((a,b)=> new Date(b.toegevoegd||0) - new Date(a.toegevoegd||0));
+  }
+  return list;
+}
+
+function render(){
+  const grid = document.getElementById('grid');
+  const empty = document.getElementById('empty');
+  const resultCount = document.getElementById('result-count');
+  const list = getFilteredSorted();
+  grid.innerHTML = '';
+
+  if(bikes.length === 0){
+    empty.style.display = 'block';
+    document.getElementById('empty-title').textContent = 'Nog geen fietsen';
+    document.getElementById('empty-body').textContent = 'Voeg je eerste fiets toe om een dossier aan te maken.';
+    resultCount.textContent = '';
+  } else if(list.length === 0){
+    empty.style.display = 'block';
+    document.getElementById('empty-title').textContent = 'Niets gevonden';
+    document.getElementById('empty-body').textContent = 'Pas je zoekterm of filter aan.';
+    resultCount.textContent = '';
+  } else {
+    empty.style.display = 'none';
+    resultCount.textContent = list.length + ' van ' + bikes.length + ' fietsen';
+    list.forEach(b => {
+      const el = document.createElement('div');
+      el.className = 'card';
+      el.onclick = () => openDetail(b.id);
+      const photoHtml = b.foto
+        ? `<img src="${escapeAttr(b.foto)}" onerror="this.parentElement.innerHTML='<div class=\\'no-photo\\'><svg width=\\'30\\' height=\\'30\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'currentColor\\' stroke-width=\\'1.6\\'><circle cx=\\'5.5\\' cy=\\'17.5\\' r=\\'3.5\\'/><circle cx=\\'18.5\\' cy=\\'17.5\\' r=\\'3.5\\'/><path d=\\'M5.5 17.5L10 8h4l4.5 9.5M10 8L8 5h3\\'/></svg></div>'">`
+        : `<div class="no-photo"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/><path d="M5.5 17.5L10 8h4l4.5 9.5M10 8L8 5h3"/></svg></div>`;
+      const status = b.status === 'verkocht' ? 'verkocht' : 'te-koop';
+      const linkTag = b.link ? `<span class="link-tag"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 14L21 3M21 3h-6M21 3v6"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>Marktplaats</span>` : '';
+      el.innerHTML = `
+        <div class="photo-wrap">
+          ${photoHtml}
+          <span class="status-pill ${status}">${b.status==='verkocht'?'Verkocht':'Te koop'}</span>
+          <span class="views-pill"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>${b.weergaven||0}</span>
+        </div>
+        <div class="body">
+          <p class="naam">${escapeHtml(b.naam || 'Naamloos')}</p>
+          <p class="merk">${escapeHtml(b.merk || '')}</p>
+          <div class="row">
+            <span class="prijs">${fmtPrijs(b.prijs)}</span>
+            ${linkTag}
+          </div>
+        </div>
+      `;
+      grid.appendChild(el);
+    });
+  }
+  updateStats();
+}
+
+function updateStats(){
+  document.getElementById('stat-totaal').textContent = bikes.length;
+  document.getElementById('stat-tekoop').textContent = bikes.filter(b=>b.status!=='verkocht').length;
+  document.getElementById('stat-views').textContent = bikes.reduce((s,b)=>s+(Number(b.weergaven)||0),0);
+  const waarde = bikes.filter(b=>b.status!=='verkocht').reduce((s,b)=>s+(Number(b.prijs)||0),0);
+  document.getElementById('stat-waarde').textContent = '\u20ac ' + waarde.toLocaleString('nl-NL');
+}
+
+function escapeHtml(str){
+  const d = document.createElement('div');
+  d.textContent = str || '';
+  return d.innerHTML;
+}
+function escapeAttr(str){
+  return (str||'').replace(/"/g,'&quot;');
+}
+
+document.getElementById('search-input').addEventListener('input', (e)=>{
+  searchTerm = e.target.value;
+  render();
+});
+document.getElementById('sort-select').addEventListener('change', (e)=>{
+  sortMode = e.target.value;
+  render();
+});
+document.getElementById('status-filter').addEventListener('click', (e)=>{
+  const chip = e.target.closest('.chip');
+  if(!chip) return;
+  document.querySelectorAll('#status-filter .chip').forEach(c=>c.classList.remove('active'));
+  chip.classList.add('active');
+  filterStatus = chip.dataset.status;
+  render();
+});
+
+function openForm(id){
+  document.getElementById('f-id').value = '';
+  document.getElementById('f-naam').value = '';
+  document.getElementById('f-merk').value = '';
+  document.getElementById('f-prijs').value = '';
+  document.getElementById('f-status').value = 'te koop';
+  document.getElementById('f-beschrijving').value = '';
+  document.getElementById('f-foto').value = '';
+  document.getElementById('f-link').value = '';
+  document.getElementById('form-title').textContent = 'Nieuwe fiets';
+  document.getElementById('err-naam').style.display = 'none';
+
+  if(id){
+    const b = bikes.find(x=>x.id===id);
+    if(b){
+      document.getElementById('form-title').textContent = 'Fiets bewerken';
+      document.getElementById('f-id').value = b.id;
+      document.getElementById('f-naam').value = b.naam || '';
+      document.getElementById('f-merk').value = b.merk || '';
+      document.getElementById('f-prijs').value = b.prijs || '';
+      document.getElementById('f-status').value = b.status || 'te koop';
+      document.getElementById('f-beschrijving').value = b.beschrijving || '';
+      document.getElementById('f-foto').value = b.foto || '';
+      document.getElementById('f-link').value = b.link || '';
+    }
+  }
+  document.getElementById('form-overlay').classList.add('open');
+  document.getElementById('f-naam').focus();
+}
+
+function closeForm(){
+  document.getElementById('form-overlay').classList.remove('open');
+}
+
+async function saveForm(){
+  const id = document.getElementById('f-id').value;
+  const naam = document.getElementById('f-naam').value.trim();
+  if(!naam){
+    document.getElementById('err-naam').style.display = 'block';
+    document.getElementById('f-naam').focus();
+    return;
+  }
+  const data = {
+    naam,
+    merk: document.getElementById('f-merk').value.trim(),
+    prijs: document.getElementById('f-prijs').value,
+    status: document.getElementById('f-status').value,
+    beschrijving: document.getElementById('f-beschrijving').value.trim(),
+    foto: document.getElementById('f-foto').value.trim(),
+    link: document.getElementById('f-link').value.trim()
+  };
+
+  if(id){
+    const b = bikes.find(x=>x.id===id);
+    Object.assign(b, data);
+    showToast('Fiets bijgewerkt');
+  } else {
+    bikes.push({
+      id: 'fiets_' + Date.now(),
+      weergaven: 0,
+      toegevoegd: new Date().toISOString(),
+      ...data
+    });
+    showToast('Fiets toegevoegd');
+  }
+  await persist();
+  render();
+  closeForm();
+}
+
+function openDetail(id){
+  const b = bikes.find(x=>x.id===id);
+  if(!b) return;
+  const photoHtml = b.foto
+    ? `<img src="${escapeAttr(b.foto)}" onerror="this.parentElement.innerHTML='<div class=\\'no-photo\\'><svg width=\\'40\\' height=\\'40\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'currentColor\\' stroke-width=\\'1.4\\'><circle cx=\\'5.5\\' cy=\\'17.5\\' r=\\'3.5\\'/><circle cx=\\'18.5\\' cy=\\'17.5\\' r=\\'3.5\\'/><path d=\\'M5.5 17.5L10 8h4l4.5 9.5M10 8L8 5h3\\'/></svg></div>'">`
+    : `<div class="no-photo"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/><path d="M5.5 17.5L10 8h4l4.5 9.5M10 8L8 5h3"/></svg></div>`;
+  const badgeClass = b.status === 'verkocht' ? 'verkocht' : 'te-koop';
+  const datum = b.toegevoegd ? new Date(b.toegevoegd).toLocaleDateString('nl-NL',{day:'numeric',month:'short',year:'numeric'}) : '\u2013';
+
+  document.getElementById('detail-content').innerHTML = `
+    <div class="detail-photo-wrap">${photoHtml}</div>
+    <div class="detail-top">
+      <div>
+        <h2 style="margin-bottom:2px;">${escapeHtml(b.naam)}</h2>
+        <div style="color:var(--ink-soft);font-size:13px;">${escapeHtml(b.merk||'')}</div>
+      </div>
+      <span class="badge ${badgeClass}">${b.status==='verkocht'?'Verkocht':'Te koop'}</span>
+    </div>
+    <div class="detail-prijs">${fmtPrijs(b.prijs)}</div>
+    <p class="detail-desc">${escapeHtml(b.beschrijving) || '<span style="color:var(--ink-faint)">Geen beschrijving toegevoegd.</span>'}</p>
+    <div class="detail-meta">
+      <div class="item"><span>Toegevoegd</span>${datum}</div>
+      <div class="item">
+        <span>Weergaven op Marktplaats</span>
+        <div class="views-editor">
+          <input type="number" id="views-input" value="${b.weergaven||0}" min="0">
+          <button class="btn-ghost" onclick="setViews('${b.id}')">Bijwerken</button>
+        </div>
+      </div>
+    </div>
+    ${b.link ? `<a class="link-btn" href="${escapeAttr(b.link)}" target="_blank" rel="noopener"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M10 14L21 3M21 3h-6M21 3v6"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>Open op Marktplaats</a>` : `<div class="small-note">Nog geen Marktplaats-link toegevoegd.</div>`}
+    <div class="panel-actions">
+      <button class="btn-danger" onclick="deleteBike('${b.id}')">Verwijderen</button>
+      <button class="btn-ghost" onclick="closeDetail(); openForm('${b.id}')">Bewerken</button>
+      <button class="btn-primary" onclick="closeDetail()">Sluiten</button>
+    </div>
+  `;
+  document.getElementById('detail-overlay').classList.add('open');
+}
+
+function closeDetail(){
+  document.getElementById('detail-overlay').classList.remove('open');
+}
+
+async function setViews(id){
+  const b = bikes.find(x=>x.id===id);
+  const val = Number(document.getElementById('views-input').value)||0;
+  b.weergaven = val;
+  await persist();
+  render();
+  updateStats();
+  showToast('Weergaven bijgewerkt');
+}
+
+async function deleteBike(id){
+  if(!confirm('Deze fiets en het dossier verwijderen?')) return;
+  bikes = bikes.filter(x=>x.id!==id);
+  await persist();
+  render();
+  closeDetail();
+  showToast('Fiets verwijderd');
+}
+
+loadBikes();
+</script>
+</body>
+</html>
